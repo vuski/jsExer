@@ -1,0 +1,155 @@
+<!--
+	THIS EXAMPLE WAS DOWNLOADED FROM https://echarts.apache.org/examples/en/editor.html?c=lines3d-flights-gl&gl=1
+-->
+<!DOCTYPE html>
+<html lang="en" style="height: 100%">
+<head>
+  <meta charset="utf-8">
+</head>
+<body style="height: 100%; margin: 0">
+  <div id="container" style="height: 100%"></div>
+
+  <script type="text/javascript" src="https://fastly.jsdelivr.net/npm/jquery"></script>
+  <script type="text/javascript" src="https://fastly.jsdelivr.net/npm/echarts@5.3.3/dist/echarts.min.js"></script>
+  <script type="text/javascript" src="https://fastly.jsdelivr.net/npm/echarts-gl@2/dist/echarts-gl.min.js"></script>
+  <script type="text/javascript" src="./sgg.js"></script>
+  <script type="text/javascript" src="./admxy.js"></script>
+  <script type="text/javascript" src="./netpopumove.js"></script>
+  <script type="text/javascript">
+   
+    var dom = document.getElementById('container');
+    var myChart = echarts.init(dom, null, {
+      renderer: 'canvas',
+      useDirtyRect: false
+    });
+    myChart.showLoading();
+
+    const admCenter = new Map(admxy.map(function (d) {
+            return [d[0], [d[1], d[2]]];
+    }));
+
+    const popuMove = popuRaw.map(function (d) {
+        let value = d[2];
+        if (value>20) return {
+            coords : [admCenter.get(d[0]), admCenter.get(d[1])],
+            value : d[3],
+            lineStyle : {
+                    width : Math.min(value,10)/5
+            }
+        };
+        else return 0
+        
+    }).filter( (d)=> {return d!=0});
+
+    //console.log(popuMove);
+    functionDraw(popuMove);
+
+    function functionDraw(popuMove) {        
+
+        myChart.hideLoading();
+        myChart.setOption({
+        geo3D: {
+            map: 'sgg',
+            shading: 'realistic',
+            silent: true,
+            environment: '#333',
+            temporalSuperSampling : 'auto',
+            realisticMaterial: {
+                roughness: 0.8,
+                metalness: 0
+            },
+            postEffect: {
+                enable: false,
+                bloom : {
+                    enable : true,
+                    bloomIntensity : 0.01
+                },
+                FXAA : {
+                    enable : true
+                }
+            },
+            groundPlane: {
+                show: false
+            },
+            light: {
+                main: {
+                intensity: 1,
+                alpha: 30
+                },
+                ambient: {
+                intensity: 0
+                }
+            },
+            viewControl: {
+                minDistance : 1,
+                maxDistance : 150,
+                distance: 150,
+                alpha: 89,
+                panMouseButton: 'left',
+                rotateMouseButton: 'right',
+                //center :[127.5, 39.5,10]
+            },
+            itemStyle: {
+                color: '#000',
+                borderWidth : 1
+            },
+            regionHeight: 0,     
+        },
+        visualMap: {
+            show: true,
+            min: -500,
+            max: 500,
+            //dimension: 3,
+            inRange: {
+                color: [
+                '#313695',
+                '#eeeeee',
+                // '#4575b4',
+                // '#74add1',
+                // '#abd9e9',
+                // '#e0f3f8',
+                // '#ffffbf',
+                // '#fee090',
+                // '#fdae61',
+                // '#f46d43',
+                // '#d73027',
+                '#a50026'
+                ]
+            }
+    },
+        series: [
+                {
+                    zlevel :10,
+                    type: 'lines3D',
+                    coordinateSystem: 'geo3D',
+                    effect: {
+                        show: false,
+                        period : 30,
+                        trailWidth: 2,
+                        trailOpacity: 0.7,
+                        trailLength: 0.2,
+                        //constantSpeed: 0.8
+                    },
+                    blendMode: 'lighter',
+                    lineStyle: {
+                        width: 1.2,
+                        opacity: 0.1
+                    },
+                    data:  popuMove// [[[127.34, 35.45],[128.10, 26.24]]]
+                    
+                }
+            ]
+        }); //myChart.setOption({
+
+        window.addEventListener('keydown', function () {
+            myChart.dispatchAction({
+                type: 'lines3DToggleEffect',
+                seriesIndex: 0
+            });
+        });
+    }; //const funtionDraw    
+
+    window.addEventListener('resize', myChart.resize);
+  </script>
+</body>
+</html>
