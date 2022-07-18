@@ -70,6 +70,16 @@
      width: 49.9%;
      height: 100%;
 }
+
+#tooltipWhole { 
+  position: absolute;
+   top: 0;
+    left : 0;
+    bottom: 0;
+     width: 100%;
+     height: 100%;
+}
+
 /* #tooltip3 { 
   position: absolute;
    top: 0;
@@ -84,19 +94,26 @@ svg {
     z-index : 10;
 }
 
-#chechBox {
+#checkBox {
   position: absolute;
    width : 100%;
    bottom : 90px;
    /* left : 45%; */
    font-family : "Arial Black";
-   font-size : 20px;
-   color : white;
+   font-size : 15px;
+   color : rgba(200,200,200,1.0);
    text-align: center;
    /* left : 20%; */
    /* background-color: rgba(0,0,0,0.8);
    border-radius: 10px 10px;
    padding : 6px 0px 11px 0px; */
+}
+
+#checkBoxLabel:hover {
+  color : rgba(255,255,255,1.0);
+}
+.icheckbox_square-blue.disabled ~ span {
+  color : rgba(100,100,100,1.0);
 }
 
 #bottomBar {
@@ -164,13 +181,23 @@ svg {
     <div class="range-slider">
       <input type="text" id="staySlider" name="timeThreshold" value="" />
     </div>
-    <div id = "chechBox">    
-      <label for="syncMap"> 
-        <input id = "syncMap" type="checkbox" checked> Sync. Maps
+    <div id = "checkBox">    
+      <label id = "checkBoxLabel" for="syncMap"> 
+        <input class="checkboxText" id = "syncMap" type="checkbox" checked> 
+        <span>Sync. Maps&nbsp;&nbsp;</span>
+      </label>      
+      <label id = "checkBoxLabel" for="dynamicBubble"> 
+        <input class="checkboxText" id = "dynamicBubble" type="checkbox" checked> 
+        <span>Dynamic Bubble</span>
       </label>
       <br/>
-      <label for="dynamicBubble"> 
-        <input id = "dynamicBubble" type="checkbox" checked> Dynamic Bubble
+      <label id = "checkBoxLabel" for="showGreater"> 
+        <input class="checkboxText" id = "showGreater" type="checkbox" unchecked> 
+        <span>Show Greater&nbsp;&nbsp;</span>
+      </label>
+      <label id = "checkBoxLabel" for="highlightGreater"> 
+        <input class="checkboxText" id = "highlightGreater" type="checkbox" unchecked> 
+        <span>Highlight Greater</span>
       </label>
     </div>
   </div>
@@ -311,7 +338,7 @@ svg {
         this.render();
         const tooltip = d3.select("#"+this.tooltipID);  
         //
-        tooltip.selectAll(".tooltipTxt").remove();
+        d3.selectAll(".tooltipTxt").remove();
         //tooltip.selectAll("text").remove();         
         
       });
@@ -365,9 +392,22 @@ svg {
       
 
       this.map.on('mousemove', (e) => {
-        this.showTooltip(e);
-        this.compMapset.forEach(map=>map.showTooltip(e)); 
-        //console.log(mousePos);
+ 
+        d3.selectAll(".tooltipTxt").remove();
+        const thisValue = this.showTooltip(e);
+        let otherValues = [];
+        this.compMapset.forEach((map)=> {
+          const value = map.showTooltip(e);
+          otherValues.push(value);
+        }); 
+        //console.log(otherValues.length);
+        if (thisValue.value >0 && otherValues[0].value>0) {
+          const p1 = thisValue;
+          const p2 = otherValues[0];
+          //console.log("this : "+thisValue.value +", other : "+otherValues[0].value);
+          this.showTooltipLink(p1, p2);          
+        }
+                //console.log(mousePos);
       });
 
       this.updateSliderData();
@@ -389,9 +429,9 @@ svg {
         
         const tooltip = d3.select("#"+this.tooltipID);  
         //
-        tooltip.selectAll(".tooltipTxt").remove();
+        //tooltip.selectAll(".tooltipTxt").remove();
            
-
+        let tooptipValue = {x:0, y:0, value:0};
         if (this.dataMap.has(key)) {
           //console.log([x1,y1]);
           const value = this.dataMap.get(key); 
@@ -424,7 +464,7 @@ svg {
                     .attr("x", (swP.x+neP.x)/2-50)
                     .attr("y", neP.y-40)
                     .attr("width", 100)
-                    .attr("height", 20)
+                    .attr("height", 25)
                     .attr('stroke', 'black')
                     .attr('fill','black')
                     .attr('opacity', 0.8);              
@@ -442,13 +482,109 @@ svg {
                     .text(value.toLocaleString('ko-KR', {maximumFractionDigits:0}));
             //const text = d3.select('#tooltip');
             //text.text(`here~~`);
+            tooptipValue = {x:(swP.x+neP.x)/2-50, y:neP.y-40,
+                            value :value,
+                            base : document.querySelector("#"+this.tooltipID).getBoundingClientRect()};
           } 
           
         }
 
+        return tooptipValue;
+    };
 
-        
-      };
+    showTooltipLink(p1, p2) {
+      
+      //console.log(p1.base);
+      const tooltip = d3.select("#"+this.tooltipID);  
+      const isP1Left = p1.base.left<p2.base.left;
+      tooltip.append("rect")
+                .attr("class", "tooltipTxt")
+                .attr("x", p1.base.left>p2.base.left? p1.x-160 : p1.x+110)
+                .attr("y", p1.y-10)
+                .attr("width", 150)
+                .attr("height", 40)
+                //.attr('stroke', 'black')
+                .attr('fill','#222222')
+                .attr('opacity', 0.9);
+
+      tooltip.append("rect")
+                .attr("class", "tooltipTxt")
+                .attr("x", p1.base.left>p2.base.left? p1.x-160 : p1.x)
+                .attr("y", p1.y-50)
+                .attr("width", 260)
+                .attr("height", 40)
+                //.attr('stroke', 'black')
+                .attr('fill','#222222')
+                .attr('opacity', 0.9);
+
+      //이어주는 링크 선
+      const qPath = d3.path();
+      const pFrom = { x:  p2.base.left + p2.x + (isP1Left? 0:100),      y :p2.y+12.5 };
+      const pTo =   { x:  p1.base.left + p1.x + (isP1Left? 260:-160),   y :p1.y+12.5 };
+      qPath.moveTo( pFrom.x, pFrom.y);
+      qPath.quadraticCurveTo( (pTo.x*7 + pFrom.x*3)/10, d3.max([pTo.y, pFrom.y])-100, 
+                              pTo.x, pTo.y );
+      d3.select("#tooltipWhole").append("path")
+                .attr("class", "tooltipTxt")
+                .attr("d", qPath)                    
+                .attr('stroke', '#ffffff')
+                .attr('stroke-opacity', 0.8)
+                .attr('stroke-width', '3px')
+                .attr('fill','none');
+                
+
+      let valueStr;
+      if ( p1.base.left < p2.base.left) {
+        if (p1.value > p2.value) valueStr = ">";
+        else if (p1.value == p2.value) valueStr = "=";
+        else valueStr = "<";
+      } else {
+        if (p2.value > p1.value) valueStr = ">";
+        else if (p1.value == p2.value) valueStr = "=";
+        else valueStr = "<";
+      }
+      //const valueStr = p1.base.left > p2.base.left? 
+                    p1.value >
+
+      //부등호
+      tooltip.append("text")
+                .attr("class", "tooltipTxt")
+                .attr("id","tooltipTextComp")
+                .attr("x", p1.base.left<p2.base.left? p1.x+110 : p1.x-10)
+                .attr("y",   p1.y+30)
+                .attr("text-anchor", p1.base.left < p2.base.left? "start" : "end")
+                .attr("alignment-baseline","alphabetic")
+                .style("font-family", "Arial Black")
+                .style("font-size", "50px")
+                .style("fill", "white")
+                .text(valueStr);
+      //반대편 수          
+      tooltip.append("text")
+                .attr("class", "tooltipTxt")
+                .attr("id","tooltipTextComp1")
+                .attr("x", p1.base.left<p2.base.left? p1.x+150 : p1.x-50)
+                .attr("y",   p1.y+20)
+                .attr("text-anchor", p1.base.left < p2.base.left? "start" : "end")
+                .attr("alignment-baseline","alphabetic")
+                .style("font-family", "Arial Black")
+                .style("font-size", "20px")
+                .style("fill", "#a0a0a0")
+                .text(p2.value.toLocaleString('ko-KR', {maximumFractionDigits:0}));
+                
+      //비교값-배수
+      const compValue = (p1.value/p2.value);
+      tooltip.append("text")
+                .attr("class", "tooltipTxt")
+                .attr("id","tooltipTextComp2")
+                .attr("x", p1.base.left<p2.base.left? p1.x+130 : p1.x-30)
+                .attr("y",   p1.y-15)
+                .attr("text-anchor", "middle")
+                .attr("alignment-baseline","alphabetic")
+                .style("font-family", "Arial Black")
+                .style("font-size", compValue >1.0? "40px" : "25px")
+                .style("fill", "white")
+                .text( "x"+compValue.toFixed(2));
+    }
 
     render() {
       
@@ -485,6 +621,21 @@ svg {
         if (Math.log(d.value) < showMin || Math.log(d.value)> showMax) continue; 
         if (d.x<_sw.lng || d.y<_sw.lat || d.x>_ne.lng || d.y>_ne.lat) continue; //frustum culling
         
+        let highlightThis = false;
+        if (showGreater||highlightGreater) {
+          let showThis = true;
+          highlightThis = true;
+          this.compMapset.forEach((mapset)=> {
+            if (mapset.dataMap.has(d.key)) {
+              const value = mapset.dataMap.get(d.key);
+              if (d.value<value) { //한번이라도 작으면
+                showThis = false;
+                highlightThis = false;                
+              }
+            }            
+          });
+          if (showGreater&&!showThis) continue;          
+        }  
         //console.log(mousePos);
 
         
@@ -492,10 +643,11 @@ svg {
         //   console.log(d.value);
         // }  
 
-        const color0 =  d3.color(mapColor(Math.log(d.value)));
+        let color0 =  d3.color(mapColor(Math.log(d.value)));
+        if (highlightGreater&&highlightThis) color0 = d3.rgb(240, 84, 17);
+        context.strokeStyle = "black";
         color0.opacity = 0.7;
-        context.fillStyle = color0;
-        context.strokeStyle = "white";//mapColor(d.value);
+        context.fillStyle = color0;    
 
         const p = this.map.project(new mapboxgl.LngLat(d.x, d.y));
         //console.log(p);
@@ -548,7 +700,7 @@ svg {
       for (let [key, value] of this.dataMap) {
         const [ox, oy] =  [ parseInt(key/10000)*unit + unit/2, (key%10000)*unit + unit/2];
         const [x,y] = proj4('EPSG:5179','EPSG:4326', [ox, oy]);
-        this.features.push({x:x, y:y, value:value, ox:ox, oy:oy});
+        this.features.push({x:x, y:y, value:value, ox:ox, oy:oy, key:key});
         //업데이트
         if (value<this.minValue) this.minValue = value;
         if (value>this.maxValue) this.maxValue = value;
@@ -562,23 +714,40 @@ svg {
 
       if (!dynamicBubble) return;
       //console.log("checkzoom");
-      const unitZoom = [1000000, 1000000, 500000, 250000, 100000, 50000, 25000, 10000, 5000, 2500, 1250, 750, 500, 250];
-                        //0       1       2       3       4       5       6     7       8     9     10   11   12   13
+
       const zoomNow = parseInt(this.map.getZoom()+1.2);
 
       if (zoomNow != this.currentZoom) {        
         this.currentZoom = parseInt(zoomNow);
         this.unit = unitZoom[Math.min(13, this.currentZoom)];
+
         this.renewFeatures(this.unit);    
         this.updateSliderData();   
+
+        this.drawGridText(this.unit);
         //console.log(this.currentZoom);
+      }      
       }
 
-      
+      drawGridText(unit) {
+      const unitStr = unit>=1000? (unit/1000)+"km grid" : unit + "m grid";
+      d3.select("#"+this.tooltipID).select(".gridtext").remove();
+      const canvas0 = document.getElementById(this.canvasID);
+      d3.select("#"+this.tooltipID)
+                .append("text")
+                .attr("class", "gridtext")
+                .attr("x", canvas0.width/2)
+                .attr("y",  47)
+                .attr("text-anchor","middle")
+                //.attr("alignment-baseline","alphabetic")
+                .style("font-family", "Noto Sans CJK KR")
+                .style('font-weight', 'light')
+                .style("font-size", "10px")
+                .style("fill", "white")
+                .text(unitStr);
     }
 
     
-
     //파일 읽기
     static loadJson(fileName) {
       
@@ -620,20 +789,20 @@ svg {
       return pointsCollection;   
           
     }
-
-
-
-
   }
 
 
- 
+  const unitZoom = [1000000, 1000000, 500000, 250000, 100000, 50000, 25000, 10000, 5000, 2500, 1250, 750, 500, 250];      
+                  //0       1       2       3       4       5       6     7       8     9     10   11   12   13
   let preventAdditionalEvent = false;
   const BASE_UNIT = 250;
   let showMin = 0;
   let showMax = 999999999;
+
   let syncMaps = true;
   let dynamicBubble = true;
+  let showGreater = false;
+  let highlightGreater = false;
 
   mapboxgl.accessToken = 'pk.eyJ1Ijoic2JraW00MjciLCJhIjoiY2o4b3Q0aXd1MDdyMjMzbnRxYTdvdDZrbCJ9.GCHi6-mDGEkd3F-knzSfRQ';
   //mapboxgl.setRTLTextPlugin('https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.js');
@@ -701,12 +870,17 @@ svg {
     for (otherMapset of mapsetArr) {
       if (mapset != otherMapset) {
         mapset.compMapset.push(otherMapset);
-        console.log(mapset);
+        //console.log(mapset);
       }
     }
   }
 
 
+  //두 지도 연계용 svg 생성
+  d3.select("#contents")
+                .append("svg")
+                .attr("id", "tooltipWhole")
+                .style("pointer-events", "none");
 
   //그리기 메인 함수 시작
   mapsetArr.forEach(mapset=>mapset.functionDraw());
@@ -715,6 +889,7 @@ svg {
   //제목달기
   mapsetArr.forEach( (mapset)=>{
     drawTitle(mapset);
+    mapset.drawGridText(mapset.unit);
   }); 
 
   function drawTitle(mapset){
@@ -726,7 +901,7 @@ svg {
                     .attr("x", 0)
                     .attr("y", 0)
                     .attr("width", canvas0.width)
-                    .attr("height", 40)
+                    .attr("height", 50)
                     //.attr('stroke', 'black')
                     .attr('fill','black')
                     .attr('opacity', 0.8);
@@ -798,10 +973,16 @@ svg {
     });
   });    
   $('#syncMap').on('ifChecked', function(event){
-    syncMaps = true;    
+    syncMaps = true;   
+    $('#showGreater').iCheck('enable'); 
+    $('#highlightGreater').iCheck('enable');  
   });
   $('#syncMap').on('ifUnchecked', function(event){
     syncMaps = false;
+    $('#showGreater').iCheck('uncheck'); 
+    $('#showGreater').iCheck('disable'); 
+    $('#highlightGreater').iCheck('uncheck'); 
+    $('#highlightGreater').iCheck('disable'); 
   });
 
 
@@ -818,6 +999,39 @@ svg {
   });
   $('#dynamicBubble').on('ifUnchecked', function(event){
     dynamicBubble = false;
+  });
+
+  
+  $(document).ready(function(){
+    $('#showGreater').iCheck({
+      checkboxClass: 'icheckbox_square-blue',
+      //radioClass: 'iradio_square-red',
+      increaseArea: '20%' // optional
+    });
+  });    
+  $('#showGreater').on('ifChecked', function(event){
+    showGreater = true;
+    mapsetArr.forEach(d=>d.render()); 
+  });
+  $('#showGreater').on('ifUnchecked', function(event){
+    showGreater = false;
+    mapsetArr.forEach(d=>d.render()); 
+  });
+
+  $(document).ready(function(){
+    $('#highlightGreater').iCheck({
+      checkboxClass: 'icheckbox_square-blue',
+      //radioClass: 'iradio_square-red',
+      increaseArea: '20%' // optional
+    });
+  });    
+  $('#highlightGreater').on('ifChecked', function(event){
+    highlightGreater = true;
+    mapsetArr.forEach(d=>d.render()); 
+  });
+  $('#highlightGreater').on('ifUnchecked', function(event){
+    highlightGreater = false;
+    mapsetArr.forEach(d=>d.render()); 
   });
 
 
@@ -838,6 +1052,7 @@ svg {
       mapsetArr.forEach(d=>d.render());
       mapsetArr.forEach( (mapset)=>{
         drawTitle(mapset);
+        mapset.drawGridText(mapset.unit);
       }); 
   });
 
