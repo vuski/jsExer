@@ -613,7 +613,7 @@ svg {
 
       context.clearRect(0, 0, canvas0.width, canvas0.height);
       context.opacity = 1;
-      context.lineWidth = 1.5;//d.value%10==0? 3 : 0.2;
+      context.lineWidth = 2.0;//d.value%10==0? 3 : 0.2;
       let count = 0 ;
 
       for (let d of this.features) {
@@ -645,7 +645,8 @@ svg {
 
         let color0 =  d3.color(mapColor(Math.log(d.value)));
         if (highlightGreater&&highlightThis) color0 = d3.rgb(240, 84, 17);
-        context.strokeStyle = "black";
+        const c0 = 2.2;
+        context.strokeStyle = d3.rgb(color0.r*c0, color0.g*c0, color0.b*c0);
         color0.opacity = 0.7;
         context.fillStyle = color0;    
 
