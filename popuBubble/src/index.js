@@ -1,210 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>population</title>
-  <Style>
-      * {
-  margin: 0;
-  padding: 0;
-}
-/* #chart-container {
-  position: relative;
-  height: 100vh;
-  overflow: hidden;
-} */
-#contents { 
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 100%;
- 
-}
-#map1 { 
-  position: absolute;
-   top: 0;
-    bottom: 0;
-     width: 49.9%;
-}
-#map2 { 
-  position: absolute;
-   top: 0;
-   left : 50.1%;
-    bottom: 0;
-     width: 49.9%;
-}
-/* #map3 { 
-  position: absolute;
-   top: 0;
-   left : 66%;
-    bottom: 0;
-     width: 33%;
-} */
-#plot1 { 
-  position: absolute;
-  top: 0;
-  bottom: 0;
-}
-#plot2 { 
-  position: absolute;
-  top: 0;
-  bottom: 0;
-}
-/* #plot3 { 
-  position: absolute;
-  top: 0;
-  bottom: 0;
-} */
-#tooltip1 { 
-  position: absolute;
-   top: 0;
-    bottom: 0;
-     width: 49.9%;
-     height: 100%;
-}
-#tooltip2 { 
-  position: absolute;
-   top: 0;
-    left : 50.1%;
-    bottom: 0;
-     width: 49.9%;
-     height: 100%;
-}
-
-#tooltipWhole { 
-  position: absolute;
-   top: 0;
-    left : 0;
-    bottom: 0;
-     width: 100%;
-     height: 100%;
-}
-
-/* #tooltip3 { 
-  position: absolute;
-   top: 0;
-    left : 66%;
-    bottom: 0;
-     width: 33%;
-     height: 100%;
-} */
-svg {
-    position: absolute;
-    overflow : hidden;
-    z-index : 10;
-}
-
-#checkBox {
-  position: absolute;
-   width : 100%;
-   bottom : 90px;
-   /* left : 45%; */
-   font-family : "Arial Black";
-   font-size : 15px;
-   color : rgba(200,200,200,1.0);
-   text-align: center;
-   /* left : 20%; */
-   /* background-color: rgba(0,0,0,0.8);
-   border-radius: 10px 10px;
-   padding : 6px 0px 11px 0px; */
-}
-
-#checkBoxLabel:hover {
-  color : rgba(255,255,255,1.0);
-}
-.icheckbox_square-blue.disabled ~ span {
-  color : rgba(100,100,100,1.0);
-}
-
-#bottomBar {
-  position: absolute;
-   width : 100%;
-   height : 150px;
-   bottom : 0px;
-   /* left : 45%; */   
-   background-color: rgba(0,0,0,0.8);
-
-}
-
-
-
-.range-slider {
-    position: absolute;
-    width : 90%;
-    height: 80px;
-    bottom : 10px;
-    left : 5%;
-    align-content: center;
-   
-}
-
-  </Style>
-
-<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
-<link href="./mapbox-gl.css" rel="stylesheet">
-<script src="https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js"></script>
-<script type="text/javascript" src="./papaparse.min.js"></script>
-<script src="./d3.v7.min.js"></script>
-<!-- <script src="https://cdn.jsdelivr.net/npm/d3-scale@4"></script> -->
-<!-- <script src="https://cdn.jsdelivr.net/npm/d3-delaunay@6"></script> -->
-<!-- <script src="https://cdn.jsdelivr.net/npm/d3-tricontour@1"></script> -->
-<!-- <script src="https://cdn.jsdelivr.net/npm/d3-array@3"></script> -->
-<!-- <script src="https://cdn.jsdelivr.net/npm/d3-geo@3"></script> -->
-<!-- <script src="https://cdn.jsdelivr.net/npm/d3-color@3"></script> -->
-<!-- <script src="https://cdn.jsdelivr.net/npm/d3-dispatch@3"></script> -->
-<!-- <script src="https://cdn.jsdelivr.net/npm/d3-ease@3"></script> -->
-<!-- <script src="https://cdn.jsdelivr.net/npm/d3-interpolate@3"></script> -->
-<!-- <script src="https://cdn.jsdelivr.net/npm/d3-selection@3"></script> -->
-<!-- <script src="https://cdn.jsdelivr.net/npm/d3-timer@3"></script> -->
-<!-- <script src="https://cdn.jsdelivr.net/npm/d3-transition@3"></script> -->
-<!-- <script src="https://cdn.jsdelivr.net/npm/d3-drag@3"></script> -->
-<!-- <script src="https://cdn.jsdelivr.net/npm/d3-zoom@3"></script> -->
-<!-- <script src="https://cdn.jsdelivr.net/npm/d3-contour@4"></script> -->
-<script src="./proj4-src.js"></script>
-<script src="./turf.min.js"></script>
-<!--Plugin CSS file with desired skin-->
-<link rel="stylesheet" href="./ion.rangeSlider.min.css"/>
-<!--jQuery-->
-<script src="./jquery.min.js"></script>
-<!--Plugin JavaScript file-->
-<script src="./ion.rangeSlider.min.js"></script>
-<script src='./mapbox-gl-language.js'></script>
-<link href="./icheck/skins/square/blue.css" rel="stylesheet">
-<script src="./icheck/icheck.min.js"></script>
-</head>
-<body>
-  <div id = "contents" ></div>
-  <div id = "map1" ></div>
-  <div id = "map2" ></div>
-  <div id = "map3" ></div>
-  <div id = "bottomBar">
-    <div class="range-slider">
-      <input type="text" id="staySlider" name="timeThreshold" value="" />
-    </div>
-    <div id = "checkBox">    
-      <label id = "checkBoxLabel" for="syncMap"> 
-        <input class="checkboxText" id = "syncMap" type="checkbox" checked> 
-        <span>Sync. Maps&nbsp;&nbsp;</span>
-      </label>      
-      <label id = "checkBoxLabel" for="dynamicBubble"> 
-        <input class="checkboxText" id = "dynamicBubble" type="checkbox" checked> 
-        <span>Dynamic Bubble</span>
-      </label>
-      <br/>
-      <label id = "checkBoxLabel" for="showGreater"> 
-        <input class="checkboxText" id = "showGreater" type="checkbox" unchecked> 
-        <span>Show Greater&nbsp;&nbsp;</span>
-      </label>
-      <label id = "checkBoxLabel" for="highlightGreater"> 
-        <input class="checkboxText" id = "highlightGreater" type="checkbox" unchecked> 
-        <span>Highlight Greater</span>
-      </label>
-    </div>
-  </div>
-
-<script >
-
- 
+import {Deck}  from '@deck.gl/core';
+import {ScatterplotLayer, SolidPolygonLayer, GeoJsonLayer} from '@deck.gl/layers';
+import {DataFilterExtension} from '@deck.gl/extensions';
+import {MapboxOverlay} from '@deck.gl/mapbox';
   class Mapset {
 
     constructor (data, map, canvasID, tooltipID) {
@@ -221,6 +18,10 @@ svg {
       this.features;
       this.maxValue = 0;
       this.minValue = 0;
+      this.deckOverlay =  new MapboxOverlay({
+        //interleaved: false,
+        layers: []
+      }); 
       
     }
 
@@ -586,90 +387,116 @@ svg {
                 .text( "x"+compValue.toFixed(2));
     }
 
+
     render() {
       
-      this.checkZoomAndRenewData();      
+      const zoomNowHere = this.map.getZoom()+1.2;
 
-      //버퍼를 포함한 화면 범위 측정 for frustum culling
-      const {_sw, _ne} = this.map.getBounds();
-      _sw.lng -= 0.01;
-      _sw.lat -= 0.01;
-      _ne.lng += 0.01;
-      _ne.lat += 0.01;
-      //console.log(_sw);
+      if (zoomNowHere<=12.5) this.checkZoomAndRenewData();      
 
+        //   //버퍼를 포함한 화면 범위 측정 for frustum culling
+        //   const {_sw, _ne} = this.map.getBounds();
+        //   _sw.lng -= 0.01;
+        //   _sw.lat -= 0.01;
+        //   _ne.lng += 0.01;
+        //   _ne.lat += 0.01;
+        //   //console.log(_sw);
+        //const zoomNowHere = this.map.getZoom()+1.2;
+        //console.log(zoomNowHere);
+        const colorLimit = this.maxValue*0.1;
+        const sizeLimit = this.unit/2;
 
+       
 
+        let start = new Date();
+        const layers  = [
+            new ScatterplotLayer({
+                id: 'popu',
+                data: this.features,
+                // Styles
+                filled: true,     
+                stroked: true,       
+                //radiusMinPixels: size,
+                radiusUnit : 'meters',
+                radiusScale: pointScale,
+                getFilterValue: d => Math.log(d.value),
+                filterRange: [showMin, showMax], //uniform buffer의 역할을 함. 아래 extensions와 함께 사용
+                getPosition: d => [d.x,d.y],
+                getRadius: (d) => {  
+                    //let radius;
+                    // if (this.currentZoom >= 14) {          
+                    //     const r = d3.scaleLinear().domain([0,colorLimit, this.maxValue]).range([0,sizeLimit*sizeLimit*2, 500*500])(d.value);
+                        
+                    //     radius = Math.pow(r, 0.5) / ((zoomNowHere-13));
+                    // } else {   
+                        const r = d3.scaleLinear().domain([0,colorLimit, this.maxValue]).range([0,sizeLimit*sizeLimit*0.9,sizeLimit*sizeLimit])(d.value);
+                        const radius = Math.pow(r,0.5);
+                    //}
+                    return radius;
+                    
+                },
+                //sizeUnits: 'pixels',
+                getFillColor: (d) => {
+                    return this.getColor(d, false);                    
+                },
 
-      let timeStart, timeEnd;
-      timeStart = new Date();  // 시작
+                lineWidthMinPixels: 1.5,
+                getLineColor: (d) => {
+                    return this.getColor(d, true);
+                },
+                // Interactive props
+                //pickable: true,
+                //autoHighlight: true,
+                //onHover: ({object}) => object && console.log(`${object.acdnt_dd_dc} (${object.acdnt_age_2_dc})`),
+            
+                updateTriggers: {
+                    //getRadius: [showMin,showMax],
+                    getFillColor : [showGreater, highlightGreater],//, showMin,showMax],
+                    getLineColor : [showGreater, highlightGreater]//, showMin,showMax]
+                },
+                visible : true,
+                extensions: [new DataFilterExtension({filterSize: 1})]      
+            })        
+        ];
+        let end = new Date(); 
+        //console.log(`layer updated: ${(end-start)}ms` );   
+        start = new Date();
+        this.deckOverlay.setProps({
+            layers : layers
+        });    
+        end = new Date(); 
+        //console.log(`setProps updated: ${(end-start)}ms` );   
+    }
 
-      const sizeLimit = 200;
-      const colorLimit = this.maxValue*0.1;
-      const mapColor = d3.scaleSequential(d3.interpolateYlGnBu).domain([ Math.log(colorLimit), Math.log(this.maxValue)]);
+    getColor(d, isBorder) {
 
-      const canvas0 = document.getElementById(this.canvasID);
-      const context = canvas0.getContext("2d");
-
-      context.clearRect(0, 0, canvas0.width, canvas0.height);
-      context.opacity = 1;
-      context.lineWidth = 2.0;//d.value%10==0? 3 : 0.2;
-      let count = 0 ;
-
-      for (let d of this.features) {
-
-        if (Math.log(d.value) < showMin || Math.log(d.value)> showMax) continue; 
-        if (d.x<_sw.lng || d.y<_sw.lat || d.x>_ne.lng || d.y>_ne.lat) continue; //frustum culling
-        
+        let opacity = 0.7*255;
         let highlightThis = false;
         if (showGreater||highlightGreater) {
-          let showThis = true;
-          highlightThis = true;
-          this.compMapset.forEach((mapset)=> {
-            if (mapset.dataMap.has(d.key)) {
-              const value = mapset.dataMap.get(d.key);
-              if (d.value<value) { //한번이라도 작으면
-                showThis = false;
-                highlightThis = false;                
-              }
-            }            
-          });
-          if (showGreater&&!showThis) continue;          
+            let showThis = true;
+            highlightThis = true;
+            this.compMapset.forEach((mapsetComp)=> {
+                if (mapsetComp.dataMap.has(d.key)) {
+                const value = mapsetComp.dataMap.get(d.key);
+                if (d.value<value) { //한번이라도 작으면
+                    showThis = false;
+                    highlightThis = false;                
+                }
+                }            
+            });
+            if (showGreater&&!showThis) opacity = 0;          
         }  
-        //console.log(mousePos);
+        //if (Math.log(d.value) < showMin || Math.log(d.value)> showMax) opacity = 0;
 
         
-        // if (d.ox-unit/2<=mousePos.x && d.ox+unit/2>mousePos.x && d.oy-unit/2<=mousePos.y && d.oy+unit/2>mousePos.y) {
-        //   console.log(d.value);
-        // }  
-
+        const sizeLimit = this.unit/2;
+        const mapColor = d3.scaleSequential(d3.interpolateYlGnBu).domain([  Math.log(sizeLimit), Math.log(this.maxValue)]);
         let color0 =  d3.color(mapColor(Math.log(d.value)));
-        if (highlightGreater&&highlightThis) color0 = d3.rgb(240, 84, 17);
-        const c0 = 2.2;
-        context.strokeStyle = d3.rgb(color0.r*c0, color0.g*c0, color0.b*c0);
-        color0.opacity = 0.7;
-        context.fillStyle = color0;    
 
-        const p = this.map.project(new mapboxgl.LngLat(d.x, d.y));
-        //console.log(p);
-        let radius;
-        if (this.currentZoom >= 14) {          
-          const r = d3.scaleLinear().domain([0,colorLimit, this.maxValue]).range([0,sizeLimit,3500])(d.value);
-          radius = Math.pow(r, 0.5);
-        } else {          
-          const r = d3.scaleLinear().domain([0,colorLimit, this.maxValue]).range([0,sizeLimit*0.5,sizeLimit])(d.value);
-          radius = Math.pow(r,0.5) *0.6;
-        }
-                                
-
-        context.beginPath();     
-        context.arc(p.x, p.y, radius, 0, 2 * Math.PI, false);        
-        context.stroke();
-        context.fill();
-        count++;
-      }
-      timeEnd = new Date();  // 종료  
-      //console.log("render : "+count+"points, " +(timeEnd-timeStart)+"ms");
+        if (highlightGreater&&highlightThis) color0 = d3.rgb(247, 131, 7);
+        
+        const c0 = isBorder ? 1.8 : 1.0;
+        return [color0.r*c0, color0.g*c0, color0.b*c0, opacity];
     }
 
     renewFeatures(unit) {
@@ -712,7 +539,7 @@ svg {
     }
 
     checkZoomAndRenewData() {
-
+        const start = new Date();
       if (!dynamicBubble) return;
       //console.log("checkzoom");
 
@@ -720,32 +547,36 @@ svg {
 
       if (zoomNow != this.currentZoom) {        
         this.currentZoom = parseInt(zoomNow);
-        this.unit = unitZoom[Math.min(13, this.currentZoom)];
+        this.unit = unitZoom[Math.min(12, this.currentZoom)];
 
         this.renewFeatures(this.unit);    
         this.updateSliderData();   
 
         this.drawGridText(this.unit);
-        //console.log(this.currentZoom);
+        //console.log(this.currentZoom);     
       }      
-      }
+      const end = new Date();
+     
+      //console.log(`time updated: ${(end-start)}ms` );
+    }
 
-      drawGridText(unit) {
-      const unitStr = unit>=1000? (unit/1000)+"km grid" : unit + "m grid";
-      d3.select("#"+this.tooltipID).select(".gridtext").remove();
-      const canvas0 = document.getElementById(this.canvasID);
-      d3.select("#"+this.tooltipID)
-                .append("text")
-                .attr("class", "gridtext")
-                .attr("x", canvas0.width/2)
-                .attr("y",  47)
-                .attr("text-anchor","middle")
-                //.attr("alignment-baseline","alphabetic")
-                .style("font-family", "Noto Sans CJK KR")
-                .style('font-weight', 'light')
-                .style("font-size", "10px")
-                .style("fill", "white")
-                .text(unitStr);
+    drawGridText(unit) {
+        const unitStr = unit>=1000? (unit/1000)+"km grid" : unit + "m grid";
+        d3.select("#"+this.tooltipID).select(".gridtext").remove();
+        const canvas0 = document.getElementById(this.canvasID);
+        d3.select("#"+this.tooltipID)
+                    .append("text")
+                    .attr("class", "gridtext")
+                    .attr("x", canvas0.width/2)
+                    .attr("y",  47)
+                    .attr("text-anchor","middle")
+                    //.attr("alignment-baseline","alphabetic")
+                    .style("font-family", "Noto Sans CJK KR")
+                    .style('font-weight', 'light')
+                    .style("font-size", "10px")
+                    .style("fill", "white")
+                    .text(unitStr);
+
     }
 
     
@@ -792,9 +623,17 @@ svg {
     }
   }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////                       이제 시작                                         ////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  const unitZoom = [1000000, 1000000, 500000, 250000, 100000, 50000, 25000, 10000, 5000, 2500, 1250, 750, 500, 250];      
-                  //0       1       2       3       4       5       6     7       8     9     10   11   12   13
+
+  const unitZoom = [1000000, 1000000, 500000, 250000, 100000, 50000, 25000, 10000, 5000, 2500, 1000, 500, 250];      
+                    //0       1       2       3       4       5       6     7       8     9     10   11   12   13
   let preventAdditionalEvent = false;
   const BASE_UNIT = 250;
   let showMin = 0;
@@ -804,6 +643,7 @@ svg {
   let dynamicBubble = true;
   let showGreater = false;
   let highlightGreater = false;
+  let pointScale = 1;
 
   mapboxgl.accessToken = 'pk.eyJ1Ijoic2JraW00MjciLCJhIjoiY2o4b3Q0aXd1MDdyMjMzbnRxYTdvdDZrbCJ9.GCHi6-mDGEkd3F-knzSfRQ';
   //mapboxgl.setRTLTextPlugin('https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.js');
@@ -847,7 +687,9 @@ svg {
   $rangeTime.ionRangeSlider();
   const sliderInstance = $rangeTime.data("ionRangeSlider");
 
-
+  const $rangeScale = $("#scaleSlider");
+  $rangeScale.ionRangeSlider();
+  const sliderInstanceScale = $rangeScale.data("ionRangeSlider");  
 
 
                   
@@ -867,8 +709,8 @@ svg {
   //const mapsetArr = [mapset1, mapset2, mapset3];
 
   //각각의 맵에 다른 맵 등록하기
-  for (mapset of mapsetArr) {
-    for (otherMapset of mapsetArr) {
+  for (const mapset of mapsetArr) {
+    for (const otherMapset of mapsetArr) {
       if (mapset != otherMapset) {
         mapset.compMapset.push(otherMapset);
         //console.log(mapset);
@@ -886,7 +728,9 @@ svg {
   //그리기 메인 함수 시작
   mapsetArr.forEach(mapset=>mapset.functionDraw());
 
-
+  map1.addControl(mapset1.deckOverlay);
+  map2.addControl(mapset2.deckOverlay);
+  
   //제목달기
   mapsetArr.forEach( (mapset)=>{
     drawTitle(mapset);
@@ -946,11 +790,11 @@ svg {
           return Math.pow(Math.exp(1),n).toLocaleString('ko-KR', {maximumFractionDigits: 0});
         },
         postfix: "명",
-        onStart: (sliderData) => { 
-          showMin = sliderData.from;
-          showMax = sliderData.to;
-          mapsetArr.forEach(d=>d.render()); 
-        },
+        // onStart: (sliderData) => { 
+        //   showMin = sliderData.from;
+        //   showMax = sliderData.to;
+        //   mapsetArr.forEach(d=>d.render()); 
+        // },
         onChange:  (sliderData) => { 
           showMin = sliderData.from;
           showMax = sliderData.to;
@@ -958,11 +802,39 @@ svg {
         }
    });
 
+   
+//range slider 초기 셋팅
+    sliderInstanceScale.update({
+        skin: "big",
+        //type: "double",
+        //grid : true,
+        min: 1,
+        max: 10,
+        //values: valueGrid,
+        from: 1,        
+        step : 0.01,
+        //prettify_enabled: true,
+        //prettify_separator: ",",
+        //prettify : (n) => ( Math.pow(Math.exp(1),n).toFixed(2)),
+        prefix: "x ",
+        onStart: (sliderData) => { 
+        pointScale = sliderData.from;
+        mapsetArr.forEach(d=>d.render()); 
+        },
+        onChange:  (sliderData) => { 
+        pointScale = sliderData.from;
+        mapsetArr.forEach(d=>d.render()); 
+        }
+    });
 
   //최대최소 업데이트 된 데이터로 다시 그리기 
   showMin = sliderInstance.options.from;
   showMax = sliderInstance.options.to;
-  mapsetArr.forEach(mapset=>mapset.render()); 
+  mapsetArr.forEach( (mapset)=> {
+    
+    mapset.render();
+    
+  }); 
 
 
   //체크박스 버튼
@@ -1056,13 +928,3 @@ svg {
         mapset.drawGridText(mapset.unit);
       }); 
   });
-
-
-</script>
-<script>
-
-
-</script>
-
-</body>
-</html>
