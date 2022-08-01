@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta property="og:title" content="d3.js enter/exit 연습"/>
+  <meta property="og:description" content=""/>
+  <meta property="og:image" content="https://raw.githubusercontent.com/vuski/jsExer/main/ggRate/titleImage.jpg"/>
+  <title>d3.js enter_exit 연습</title>
+  <Style>
+      * {
+  margin: 0;
+  padding: 0;
+}
+/* #chart-container {
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+} */
+#contents { 
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100%; 
+} 
+svg {
+    position: absolute;
+    overflow : hidden;
+    width: 100%; 
+    height: 100%; 
+    z-index : 10;
+}
+
+
+#bottomBar {
+  position: absolute;
+   width : 100%;
+   height : 90px;
+   bottom : 0px;
+   /* left : 45%; */   
+   background-color: rgba(0,0,0,0.8);
+   z-index : 20;
+}
+
+.range-slider {
+    position: absolute;
+    width : 90%;
+    /* height: 60px; */
+    bottom : 10px;
+    left : 5%;
+    align-content: center;   
+    z-index : 40;
+}
+
+
+
+  </Style>
+
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+<script src="./d3.v7.min.js"></script>
+<link rel="stylesheet" href="./ion.rangeSlider.min.css"/>
+<script src="./jquery.min.js"></script>
+<script src="./ion.rangeSlider.min.js"></script>
+
+</head>
+<body>
+  <div id = "contents" ></div>
+  <div id = "bottomBar">
+    <div class="range-slider">
+      <input type="text" id="ggSlider" name="timeThreshold" value="" />
+    </div>
+  </div>
+  <script>
+
+      
+      const svg = d3.select("#contents")
+                  .append("svg");
+
+      const g2 = svg.append("g")
+                    .attr("id", "against");
+      const g1 = svg.append("g")
+                    .attr("id", "approval");
+      const g3 = svg.append("g")
+                    .attr("id", "text");
+      let data0 = [];
+      for (let i=0 ; i<100 ; i++) data0.push(i);
+
+      const hh = window.innerHeight-150;
+      const ww = window.innerWidth/2;
+      let data1 = [];
+      for (let i=0 ; i<100 ; i++) {
+        let xx = Math.random()*2-1;
+        let yy = Math.random()*2-1;
+        const xxyyLen = Math.sqrt((xx*xx)+(yy*yy));
+        xx /= xxyyLen;
+        yy /= xxyyLen;
+        data1.push({id:i, x:ww+xx, y:hh+yy, dx:xx, dy:yy});
+      }
+
+      let ggRate = 28;
+      draw();
+
+
+
+
+
+      function draw() {
+        const h = (window.innerHeight-90)/2;
+        const w = window.innerWidth/2;
+
+        const approval = g1.selectAll(".appr")
+                            .data(data0.filter(d=>d<ggRate), d=>d);
+        const approval2 = g1.selectAll(".appr2")
+                            .data(data0.filter(d=>d<ggRate), d=>d);
+
+        approval.enter()
+                .append("circle")                
+                .attr("class","appr")
+                .style("fill", 'white')
+                .style("opacity",0.8)
+                .attr("cx", d=>  w+(d%10-5)*30+15)
+                .attr("cy",  d=> h+(parseInt(d/10)-5)*30+15)
+                .attr("r", 15);
+        approval2.enter()
+                .append("image")                
+                .attr("class","appr2")
+                .attr('x', d=> w+(d%10-5)*30)
+                .attr('y', d=> h+(parseInt(d/10)-5)*30)
+                .attr('width', 30)
+                .attr('height', 30)
+                
+                .attr("xlink:href", "./aprvl.gif");
+        approval.exit().remove();
+        approval2.exit().remove();
+
+        const against = g2.selectAll("image")
+                          .data(data1.filter(d=>d.id<(100-ggRate)), (d)=>(d.id+" "+d.x+" "+d.y));
+        const againstAppend = against.enter()
+                            .append("image");
+        against.transition()
+                .duration(16)
+                .attr('x', (d)=> {
+                  return d.x;
+                })
+                .attr('y', d=> d.y)
+                .attr('width', 30)
+                .attr('height', 30)
+                .style("opacity",0.5)
+                .attr("xlink:href", d=> ("./"+(d.id%7)+".gif"));
+        against.exit().remove();
+        g3.selectAll("text").remove();         
+        g3.append("text")
+          .attr("x", w)
+          .attr("y",  60)
+          .attr("text-anchor","middle")
+          .attr("alignment-baseline","alphabetic")
+          .style("font-family", "Arial Black")
+          .style("font-size", "70px")
+          .style("fill", "black")
+          .text(ggRate+"%");
+        //console.log(d3.timeDay());
+      }
+
+      function movePos(){
+        const h = window.innerHeight-90;
+        const w = window.innerWidth;
+
+        data1.forEach((d) => {
+
+          if (d.x<0) {
+            d.x = 0;
+            d.dx *= -1 * (Math.random()*2+0.5);
+            if (Math.abs(d.dx)>3) d.dx = 3 * d.dx/Math.abs(d.dx);
+          }
+          if (d.x+30>w) {
+            d.x = w-30;
+            d.dx *= -1 * (Math.random()*2+0.5);
+            if (Math.abs(d.dx)>3) d.dx = 3 * d.dx/Math.abs(d.dx);
+          }
+
+          if (d.y<0 ) {
+            d.y=0;
+            d.dy *= -1 * (Math.random()*2+0.5);
+            if (Math.abs(d.dy)>3) d.dy = 3 * d.dy/Math.abs(d.dy);
+          }
+          if (d.y+30>h) {
+            d.y = h-30;
+            d.dy *= -1 * (Math.random()*2+0.5);
+            if (Math.abs(d.dy)>3) d.dy = 3 * d.dy/Math.abs(d.dy);
+          }
+
+          d.x += d.dx;
+          d.y += d.dy;
+        });
+
+      }
+      
+      const $rangeGG = $("#ggSlider");
+      $rangeGG.ionRangeSlider();
+      const sliderInstance = $rangeGG.data("ionRangeSlider");
+
+      
+
+      sliderInstance.update({
+        skin: "big",
+        min: 0,
+        max: 100,
+        from: ggRate,        
+        step : 1,
+        postfix: "%",
+        onStart: (sliderData) => {  
+          ggRate = sliderData.from;  
+          draw();                
+        },
+        onChange:  (sliderData) => { 
+          ggRate = sliderData.from;  
+          draw();        
+        }
+      });
+                
+
+    window.addEventListener('resize', function() {
+        const h = window.innerHeight;
+        const w = window.innerWidth;
+        d3.select("svg")
+            .attr("width", w)
+            .attr("height", h);     
+        d3.selectAll("image").remove();
+        d3.selectAll("circle").remove();
+        draw();     
+        
+    });
+
+    function animate() {
+      //sconsole.log(d3.timeDay());
+      movePos();
+      draw();
+      requestAnimationFrame(animate);
+    }
+    window.requestAnimationFrame(animate);
+
+
+  </script>
+
+
+</body>
+</html>
