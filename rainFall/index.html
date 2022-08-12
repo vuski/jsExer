@@ -147,17 +147,27 @@ const xyTable = new Map();
 let points = new Array();
 let rawData;
 
+const faulty = new Set();
+faulty.add(376);
+faulty.add(590);
+faulty.add(425);
+faulty.add(572);
+faulty.add(965);
+faulty.add(575);
+faulty.add(321);
+
+
 function refreshData(rawData, datenow) {
 
   points = rawData.filter((d) => {
           const dateThis = new Date(d.date);
           let result = false;
           if (dateThis.getTime()== datenow) result = true;
-          if (d.id==376 || d.id==590 || d.id==425 || d.id==572) result = false; //이상지점 제거
+          if (faulty.has(d.id)) result = false; //이상지점 제거
           return result;
         }).map((d) => {
           const [x,y] = xyTable.get(d.id);
-          return [x,y, d.rainfall]; 
+          return [x,y, d.rainfall, d.id]; 
         });
 
   const tri = d3.tricontour();
@@ -297,7 +307,7 @@ function render() {
     const p = map.project(new mapboxgl.LngLat(points[i][0], points[i][1]));
     context.font = 'bold '+(parseInt(points[i][2]/15)+10) +'px Arial';
     context.fillStyle = mapColor(Math.round(points[i][2]));
-    context.fillText(Math.round(points[i][2]), p.x, p.y);
+    context.fillText(Math.round(points[i][2])+"\n"+points[i][3], p.x, p.y);
     
   }
 
@@ -315,7 +325,7 @@ function render() {
   context1.font = 'bold 15px Arial';
   context1.fillText("데이터 : 기상자료개방포털 방재기상관측(AWS)", canvas1.width/2, canvas1.height-80);
   context1.font = '10px Arial';
-  context1.fillText("광명노온(376), 남현(425), 성남(572), 과천(590)은 이상치로 확인되어 제외", canvas1.width/2, canvas1.height-60);
+  context1.fillText("몇몇 관측점은 특정일에 이상치로 확인되어 모든 날짜에서 제외", canvas1.width/2, canvas1.height-60);
   //d.id==590 || d.id==425 || d.id==572) result = false; //이상지점 제거
 }
 
