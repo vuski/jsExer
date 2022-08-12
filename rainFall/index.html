@@ -307,7 +307,7 @@ function render() {
     const p = map.project(new mapboxgl.LngLat(points[i][0], points[i][1]));
     context.font = 'bold '+(parseInt(points[i][2]/15)+10) +'px Arial';
     context.fillStyle = mapColor(Math.round(points[i][2]));
-    context.fillText(Math.round(points[i][2])+"\n"+points[i][3], p.x, p.y);
+    context.fillText(Math.round(points[i][2]), p.x, p.y);
     
   }
 
