@@ -302,10 +302,12 @@ function render() {
 
   context.textBaseline = 'middle';
   context.textAlign = 'center';
-
+  const zoomLevel = map.getZoom();
+  console.log(zoomLevel);
   for (let i=0 ; i<points.length ; i++) {
     const p = map.project(new mapboxgl.LngLat(points[i][0], points[i][1]));
-    context.font = 'bold '+(parseInt(points[i][2]/15)+10) +'px Arial';
+    const fontsize = (parseInt(points[i][2]/15)+10) * Math.min((Math.pow(zoomLevel,3)/(1000)),1);
+    context.font = 'bold '+ fontsize+'px Arial';
     context.fillStyle = mapColor(Math.round(points[i][2]));
     context.fillText(Math.round(points[i][2]), p.x, p.y);
     
