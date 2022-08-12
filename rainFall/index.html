@@ -182,7 +182,7 @@ async function loadJson() {
         //1. features로 변환
         
         rawData = results.data;
-        console.log(datenow.getTime());
+        //console.log(datenow.getTime());
         const data  = refreshData(rawData, datenow.getTime());    
 
         functionDraw(data, points);
@@ -349,9 +349,9 @@ sliderInstance.update({
 
   onChange:  (sliderData) => { 
     
-    console.log(sliderData.from);
+    //console.log(sliderData.from);
     datenow.setTime(sliderData.from);
-    console.log(datenow);
+    //console.log(datenow);
     const data  = refreshData(rawData, sliderData.from)  
     functionDraw(data, points);        
   }
@@ -369,7 +369,7 @@ window.addEventListener('resize', function() {
         .attr("height", h);  
     d3.select("#textCanvas")
         .attr("width", w)
-        .attr("height", h);  
+        .attr("height", 100);  
     render();
   });
 
