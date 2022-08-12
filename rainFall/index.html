@@ -17,6 +17,7 @@
    top: 0;
     bottom: 0;
      width: 100%;
+    
 }
 #map { 
   position: absolute;
@@ -31,10 +32,35 @@
      width: 100%;
      height: 100%;
 }
-svg {
+#textCanvas { 
+  position: absolute;
+   top: 0;
+    bottom: 0;
+     width: 100%;
+     height: 100%;
+     z-index : 30;
+}
+
+
+
+#bottomBar {
+  position: absolute;
+   width : 100%;
+   height : 100px;
+   bottom : 0px;
+   /* left : 45%; */   
+   background-color: rgba(0,0,0,0.8);
+   z-index : 50;
+}
+
+.range-slider {
     position: absolute;
-    width: 100%;
-    height: 100%;
+    width : 80%;
+    /* height: 60px; */
+    bottom : 10px;
+    left : 10%;
+    align-content: center;   
+    z-index : 70;
 }
 
   </Style>
@@ -52,239 +78,300 @@ svg {
 <script src='./mapbox-gl-language.js'></script>
 <script src="./proj4-src.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+<link rel="stylesheet" href="./ion.rangeSlider.min.css"/>
+<script src="./jquery.min.js"></script>
+<script src="./ion.rangeSlider.min.js"></script>
 </head>
 <body>
   <div id = "contents" ></div>
   <div id = "map" ></div>
-
+  <div id = "bottomBar">
+    <div class="range-slider">
+      <input type="text" id="dateSlider" name="timeThreshold" value="" />
+    </div>
+  </div>
 
 
 <script >
 
-  const numberArray = range(20,400,2); 
-  const basePoint = {x:953200, y:1947700};
-  const [xcen,ycen] = proj4('EPSG:5179','EPSG:4326',[ basePoint.x, basePoint.y]);
+const numberArray = range(20,400,2); 
+//const basePoint = {x:953200, y:1947700};
+//const [xcen,ycen] = proj4('EPSG:5179','EPSG:4326',[ basePoint.x, basePoint.y]);
+const datenow = new Date('2022-08-08');
+mapboxgl.accessToken = 'pk.eyJ1Ijoic2JraW00MjciLCJhIjoiY2o4b3Q0aXd1MDdyMjMzbnRxYTdvdDZrbCJ9.GCHi6-mDGEkd3F-knzSfRQ';
+const map = new mapboxgl.Map({
+    container: 'map', // container ID
+    //style: 'mapbox://styles/mapbox/streets-v11', // style URL
+    style: 'mapbox://styles/sbkim427/cl6ool43r003o14kwmd8ogdwc',
+    //style: 'mapbox://styles/mapbox/dark-v10',
+    center: [ 127.6, 35.7], // starting position [lng, lat]
+    zoom: 6, // starting zoom
+    //projection: 'globe' // display the map as a 3D globe
+});
 
-  mapboxgl.accessToken = 'pk.eyJ1Ijoic2JraW00MjciLCJhIjoiY2o4b3Q0aXd1MDdyMjMzbnRxYTdvdDZrbCJ9.GCHi6-mDGEkd3F-knzSfRQ';
-  const map = new mapboxgl.Map({
-      container: 'map', // container ID
-      //style: 'mapbox://styles/mapbox/streets-v11', // style URL
-      style: 'mapbox://styles/sbkim427/cl6ool43r003o14kwmd8ogdwc',
-      //style: 'mapbox://styles/mapbox/dark-v10',
-      center: [xcen,ycen], // starting position [lng, lat]
-      zoom: 10, // starting zoom
-      //projection: 'globe' // display the map as a 3D globe
-  });
-
-  map.dragRotate.disable(); 
-  map.touchZoomRotate.disableRotation();    
-  map.addControl(new MapboxLanguage({
-    defaultLanguage: 'ko'
-  }));
-      
-  map.on('style.load', () => {
-      map.setFog({}); // Set the default atmosphere style
-  });
-
-  function range(start, end, gap) {
-        return Array((end - start)/gap + 1).fill().map((_, idx) => start + (idx*gap));
-  }   
-
-  let bound;
-  (async function loadLocation() {
-        
-        await Papa.parse("./idxy.tsv", {
-          download: true,
-          header : true,
-          delimiter :'\t',
-          dynamicTyping : true,
-          skipEmptyLines: true,
-          complete: function(results) {           
-            const xyTable = new Map();
-            results.data.map((d) => {
-              xyTable.set(d.id, [d.lon, d.lat]);
-            });
-            loadJson(xyTable);
-          }         
-        });
-        
-    })();
-
-
-
-  async function loadJson(xyTable) {
-        //let dataMove;
-        await Papa.parse("./OBS_AWS_DD_20220811002900.csv", {
-          download: true,
-          header : true,
-          delimiter :',',
-          dynamicTyping : true,
-          skipEmptyLines: true,
-          complete: function(results) {
-            //1. features로 변환
-            const datenow = new Date('2022-08-08');
-           
-            const points = results.data.filter((d) => {
-              const dateThis = new Date(d.date);
-              let result = false;
-              if (dateThis.getTime()== datenow.getTime()) result = true;
-              if (d.id==376 || d.id==590 || d.id==425 || d.id==572) result = false; //이상지점 제거
-              return result;
-            }).map((d) => {
-              const [x,y] = xyTable.get(d.id);
-              return [x,y, d.rainfall]; 
-            });
-
-            const tri = d3.tricontour();
+map.dragRotate.disable(); 
+map.touchZoomRotate.disableRotation();    
+map.addControl(new MapboxLanguage({
+  defaultLanguage: 'ko'
+}));
     
-            //console.log("numberArray :"+numberArray);
-            tri.thresholds(numberArray);
-            const data = tri(points);
+map.on('style.load', () => {
+    map.setFog({}); // Set the default atmosphere style
+});
 
-            functionDraw(data, points);
-          }         
-        });
-        //return dataMove;
-    };
+function range(start, end, gap) {
+      return Array((end - start)/gap + 1).fill().map((_, idx) => start + (idx*gap));
+}   
 
+const xyTable = new Map();
 
-
-function getScrollTop() {
-	if( window.pageYOffset !== undefined ) {
-		return window.pageYOffset;
-	} else {
-		return document.documentElement.scrollTop || document.body.scrollTop;
-	}
-}
-
-function getScrollLeft() {
-	if( window.pageXOffset !== undefined ) {
-		return window.pageXOffset;
-	} else {
-		return document.documentElement.scrollLeft || document.body.scrollLeft;
-	}
-}
-
-  function functionDraw(data, points) {
-    //console.log("data:",data);  
-   
-    const smooth = ({type, value, coordinates}) => {
-      //console.log(coordinates);
-      return {type, value, coordinates: coordinates.map(rings => {        
-          const smoothed = turf.polygonSmooth(turf.polygon(rings), {iterations: 2});
-          //console.log(smoothed);
-          return smoothed.features[0].geometry.coordinates;
-        })
-      };
-    };
-
-    const data2 = data.map(d => smooth(d));
-
-    //console.log(contours);
-
-    const w = window.innerWidth, h = document.documentElement.clientHeight;//window.innerHeight;
-
-    function mapboxProjection() {
+(async function loadLocation() {
       
-      return d3.geoTransform({
-        point : function(x,y) {
-          const p = map.project(new mapboxgl.LngLat(x, y));
-          this.stream.point(p.x, p.y);
-        }
+      await Papa.parse("./idxy.tsv", {
+        download: true,
+        header : true,
+        delimiter :'\t',
+        dynamicTyping : true,
+        skipEmptyLines: true,
+        complete: function(results) {           
+         
+          results.data.map((d) => {
+            xyTable.set(d.id, [d.lon, d.lat]);
+          });
+          loadJson();
+        }         
       });
-    }
+      
+  })();
 
-    const container = map.getCanvasContainer();
-    const mapColor = d3.scaleSequential(d3.interpolateCubehelixDefault).domain([400,0]);
-    const w0 = window.innerWidth, h0 = window.innerHeight;
+let points = new Array();
+let rawData;
 
-    const canvas = d3.select(container)
-        .append("canvas")
-        .attr("id", "contourCanvas")
-        .attr("width", w0)
-        .attr("height", h0);  
+function refreshData(rawData, datenow) {
 
-    const canvas0 = document.getElementById('contourCanvas');
-    const context = canvas0.getContext("2d");
-    
-    const pathCanvas = d3.geoPath(mapboxProjection(),context) ;
+  points = rawData.filter((d) => {
+          const dateThis = new Date(d.date);
+          let result = false;
+          if (dateThis.getTime()== datenow) result = true;
+          if (d.id==376 || d.id==590 || d.id==425 || d.id==572) result = false; //이상지점 제거
+          return result;
+        }).map((d) => {
+          const [x,y] = xyTable.get(d.id);
+          return [x,y, d.rainfall]; 
+        });
 
-    render();
+  const tri = d3.tricontour();
 
-    map.on("viewreset", render);
-    map.on("move", render);
-    map.on("moveend", render);    
+  //console.log("numberArray :"+numberArray);
+  tri.thresholds(numberArray);
+  const data = tri(points);
 
-    function render() {
+  return data;
 
-      context.clearRect(0, 0, canvas0.width, canvas0.height);
-      // context.globalAlpha = 0.2;
-      // context.fillStyle = "#000000";
-      // context.fillRect(0,0, canvas0.width, canvas0.height);
-      // context.globalAlpha = 1.0;
-      for (let i = 0; i<data2.length; i++) {
-        const d = data2[i];
-        const contourCollections = {
-          type : "FeatureCollection",
-          features : [{
-            
-              type : "Feature",
-              properties : {
-                value : d.value
-              },
-              geometry: {
-                type : "MultiPolygon",
-                coordinates : d.coordinates
-              }          
-          }]      
-        };
+}
 
-        context.opacity = 0.7;
-        context.lineWidth = d.value%100==0? 5 : d.value%10==0? 1 : 0.4;
-        context.strokeStyle = mapColor(d.value);//%50==0? d.value : (Math.floor(d.value/50)+1)*50);
-
-        context.beginPath();     
-        pathCanvas(contourCollections);
-        context.stroke();
-
-      }
-
-      context.textBaseline = 'middle';
-      context.textAlign = 'center';
-      for (let i=0 ; i<points.length ; i++) {
-        const p = map.project(new mapboxgl.LngLat(points[i][0], points[i][1]));
-        context.font = 'bold '+(parseInt(points[i][2]/15)+10) +'px Arial';
-        context.fillStyle = mapColor(Math.round(points[i][2]));
-        context.fillText(Math.round(points[i][2]), p.x, p.y);
+async function loadJson() {
+    //let dataMove;
+    await Papa.parse("./OBS_AWS_DD_20220812135221.csv", {
+      download: true,
+      header : true,
+      delimiter :',',
+      dynamicTyping : true,
+      skipEmptyLines: true,
+      complete: function(results) {
+        //1. features로 변환
         
-      }
+        rawData = results.data;
+        console.log(datenow.getTime());
+        const data  = refreshData(rawData, datenow.getTime());    
 
-      context.font = 'bold 35px Arial';
-      context.fillStyle = 'black';
-      context.fillText("2022.08.08 일강수량", canvas0.width/2, 40);
-      context.font = 'bold 17px Arial';
-      context.fillText("수치가 표기된 곳이 기상 관측지점", canvas0.width/2, 70);
-
-      context.font = 'bold 15px Arial';
-      context.fillText("데이터 : 기상자료개방포털 방재기상관측(AWS)", canvas0.width/2, canvas0.height-50);
-      context.font = '10px Arial';
-      context.fillText("광명노온(376), 남현(425), 성남(572), 과천(590)은 이상치로 확인되어 제외", canvas0.width/2, canvas0.height-30);
-      //d.id==590 || d.id==425 || d.id==572) result = false; //이상지점 제거
-    }
-
-        
-    window.addEventListener('resize', function() {
-      const w = window.innerWidth, h = window.innerHeight;
-
-      d3.select("#contourCanvas")
-          .attr("width", w)
-          .attr("height", h);  
-      render();
+        functionDraw(data, points);
+      }         
     });
+    //return dataMove;
+};
+
+
+
+function mapboxProjection() {
+  
+  return d3.geoTransform({
+    point : function(x,y) {
+      const p = map.project(new mapboxgl.LngLat(x, y));
+      this.stream.point(p.x, p.y);
+    }
+  });
+}
+
+const w = window.innerWidth, h = document.documentElement.clientHeight;//window.innerHeight;
+
+const container = map.getCanvasContainer();
+const mapColor = d3.scaleSequential(d3.interpolateCubehelixDefault).domain([400,0]);
+const w0 = window.innerWidth, h0 = window.innerHeight;
+
+const canvas = d3.select(container)
+    .append("canvas")
+    .attr("id", "contourCanvas")
+    .attr("width", w0)
+    .attr("height", h0);  
+
+const canvasText = d3.select("#bottomBar")
+    .append("canvas")
+    .attr("id", "textCanvas")
+    .attr("width", w0)
+    .attr("height", 100);  
+
+const canvas0 = document.getElementById('contourCanvas');
+const context = canvas0.getContext("2d");
+
+const canvas1 = document.getElementById('textCanvas');
+const context1 = canvas1.getContext("2d");
+
+const pathCanvas = d3.geoPath(mapboxProjection(),context) ;
+
+map.on("viewreset", render);
+map.on("move", render );
+map.on("moveend", render);    
+
+
+let dataSmooth;
+
+function functionDraw(data, points) {
+  //console.log("data:",data);  
+  
+  const smooth = ({type, value, coordinates}) => {
+    //console.log(coordinates);
+    return {type, value, coordinates: coordinates.map(rings => {        
+        const smoothed = turf.polygonSmooth(turf.polygon(rings), {iterations: 2});
+        //console.log(smoothed);
+        return smoothed.features[0].geometry.coordinates;
+      })
+    };
+  };
+
+  dataSmooth = data.map(d => smooth(d));
+  //console.log(contours);
+  render();
+}
+
+
+function render() {
+
+  context.clearRect(0, 0, canvas0.width, canvas0.height);
+  context1.clearRect(0, 0, canvas1.width, canvas1.height);
+  // context.globalAlpha = 0.2;
+  // context.fillStyle = "#000000";
+  // context.fillRect(0,0, canvas0.width, canvas0.height);
+  // context.globalAlpha = 1.0;
+  for (let i = 0; i<dataSmooth.length; i++) {
+    const d = dataSmooth[i];
+    const contourCollections = {
+      type : "FeatureCollection",
+      features : [{
+        
+          type : "Feature",
+          properties : {
+            value : d.value
+          },
+          geometry: {
+            type : "MultiPolygon",
+            coordinates : d.coordinates
+          }          
+      }]      
+    };
+
+    context.opacity = 0.7;
+    context.lineWidth = d.value%100==0? 5 : d.value%10==0? 1 : 0.4;
+    context.strokeStyle = mapColor(d.value);//%50==0? d.value : (Math.floor(d.value/50)+1)*50);
+
+    context.beginPath();     
+    pathCanvas(contourCollections);
+    context.stroke();
 
   }
 
+  context.textBaseline = 'middle';
+  context.textAlign = 'center';
 
+  for (let i=0 ; i<points.length ; i++) {
+    const p = map.project(new mapboxgl.LngLat(points[i][0], points[i][1]));
+    context.font = 'bold '+(parseInt(points[i][2]/15)+10) +'px Arial';
+    context.fillStyle = mapColor(Math.round(points[i][2]));
+    context.fillText(Math.round(points[i][2]), p.x, p.y);
+    
+  }
+
+  context.textBaseline = 'middle';
+  context.textAlign = 'center';
+  context.font = 'bold 35px Arial';
+  context.fillStyle = 'black';
+  context.fillText(datenow.toLocaleDateString()+" 일강수량", canvas1.width/2, 40);
+  context.font = 'bold 17px Arial';
+  context.fillText("수치가 표기된 곳이 기상 관측지점", canvas1.width/2, 70);
+
+  context1.textBaseline = 'middle';
+  context1.textAlign = 'center';
+  context1.fillStyle = 'white';
+  context1.font = 'bold 15px Arial';
+  context1.fillText("데이터 : 기상자료개방포털 방재기상관측(AWS)", canvas1.width/2, canvas1.height-80);
+  context1.font = '10px Arial';
+  context1.fillText("광명노온(376), 남현(425), 성남(572), 과천(590)은 이상치로 확인되어 제외", canvas1.width/2, canvas1.height-60);
+  //d.id==590 || d.id==425 || d.id==572) result = false; //이상지점 제거
+}
+
+
+const $rangeDate = $("#dateSlider");
+$rangeDate.ionRangeSlider();
+const sliderInstance = $rangeDate.data("ionRangeSlider");
+
+
+function dateToTS (date) {
+    return date.valueOf();
+}
+
+function tsToDate (ts) {
+    const d = new Date(ts);
+
+    return d.toLocaleDateString("ko-KR", {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+}   
+
+sliderInstance.update({
+  skin: "big",
+  min: dateToTS(new Date('2022-07-31')),
+  max: dateToTS(new Date('2022-08-11')),
+  from: dateToTS(new Date('2022-08-08')),  
+  prettify : tsToDate,
+  step : 86400000,
+
+  onChange:  (sliderData) => { 
+    
+    console.log(sliderData.from);
+    datenow.setTime(sliderData.from);
+    console.log(datenow);
+    const data  = refreshData(rawData, sliderData.from)  
+    functionDraw(data, points);        
+  }
+});
+
+
+
+
+
+window.addEventListener('resize', function() {
+    const w = window.innerWidth, h = window.innerHeight;
+
+    d3.select("#contourCanvas")
+        .attr("width", w)
+        .attr("height", h);  
+    d3.select("#textCanvas")
+        .attr("width", w)
+        .attr("height", h);  
+    render();
+  });
 
 
 </script>
