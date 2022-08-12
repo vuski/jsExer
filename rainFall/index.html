@@ -172,7 +172,7 @@ function refreshData(rawData, datenow) {
 
 async function loadJson() {
     //let dataMove;
-    await Papa.parse("./OBS_AWS_DD_20220812135221.csv", {
+    await Papa.parse("./rainfallData.csv", {
       download: true,
       header : true,
       delimiter :',',
