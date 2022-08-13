@@ -109,6 +109,7 @@ const map = new mapboxgl.Map({
     //projection: 'globe' // display the map as a 3D globe
 });
 
+
 map.dragRotate.disable(); 
 map.touchZoomRotate.disableRotation();    
 map.addControl(new MapboxLanguage({
@@ -118,6 +119,13 @@ map.addControl(new MapboxLanguage({
 map.on('style.load', () => {
     map.setFog({}); // Set the default atmosphere style
 });
+
+
+
+const $rangeDate = $("#dateSlider");
+$rangeDate.ionRangeSlider();
+const sliderInstance = $rangeDate.data("ionRangeSlider");
+
 
 function range(start, end, gap) {
       return Array((end - start)/gap + 1).fill().map((_, idx) => start + (idx*gap));
@@ -155,7 +163,51 @@ faulty.add(572);
 faulty.add(965);
 faulty.add(575);
 faulty.add(321);
+faulty.add(116);
 
+
+const dateFilter = new Set();
+dateFilter.add("1998-08-01");
+dateFilter.add("1998-08-02");
+dateFilter.add("1998-08-04");
+dateFilter.add("1998-08-06");
+dateFilter.add("1998-08-08");
+dateFilter.add("1998-08-12");
+dateFilter.add("1998-08-13");
+dateFilter.add("1998-08-16");
+dateFilter.add("1999-08-01");
+dateFilter.add("1999-08-02");
+dateFilter.add("1999-08-03");
+dateFilter.add("1999-08-04");
+dateFilter.add("2001-07-05");
+dateFilter.add("2001-07-15");
+dateFilter.add("2001-07-23");
+dateFilter.add("2001-07-29");
+dateFilter.add("2001-07-30");
+dateFilter.add("2001-07-31");
+dateFilter.add("2006-07-09");
+dateFilter.add("2006-07-10");
+dateFilter.add("2006-07-12");
+dateFilter.add("2006-07-15");
+dateFilter.add("2006-07-16");
+dateFilter.add("2006-07-28");
+dateFilter.add("2010-09-21");
+dateFilter.add("2011-07-03");
+dateFilter.add("2011-07-09");
+dateFilter.add("2011-07-10");
+dateFilter.add("2011-07-27");
+dateFilter.add("2020-08-03");
+dateFilter.add("2020-08-07");
+dateFilter.add("2020-08-08");
+dateFilter.add("2020-08-26");
+dateFilter.add("2022-07-31");
+dateFilter.add("2022-08-08");
+dateFilter.add("2022-08-09");
+dateFilter.add("2022-08-10");
+dateFilter.add("2022-08-11");
+
+const daySet = new Set();
+const dayList = new Array();
 
 function refreshData(rawData, datenow) {
 
@@ -182,7 +234,7 @@ function refreshData(rawData, datenow) {
 
 async function loadJson() {
     //let dataMove;
-    await Papa.parse("./rainfallData.csv", {
+    await Papa.parse("./rainfallData_.csv", {
       download: true,
       header : true,
       delimiter :',',
@@ -190,9 +242,35 @@ async function loadJson() {
       skipEmptyLines: true,
       complete: function(results) {
         //1. features로 변환
-        
-        rawData = results.data;
-        //console.log(datenow.getTime());
+        rawData = results.data.filter((d) => (dateFilter.has(d.date)));
+        //rawData = results.data;
+
+        rawData.forEach((d)=>{
+          daySet.add(d.date);
+        });
+        console.log(daySet);
+        daySet.forEach((d) =>{
+          dayList.push(d);
+        });
+
+        sliderInstance.update({
+          skin: "big",
+          min: 0,
+          max: dayList.length-1,
+          from: dayList.length-4,  
+          prettify : tsToDate,
+          step : 1,
+
+          onChange:  (sliderData) => { 
+            
+            console.log("new Date(dayList[sliderData.from])",new Date(dayList[sliderData.from]));
+            datenow.setTime(new Date(dayList[sliderData.from]));
+            console.log("datenow:",datenow);
+            const data  = refreshData(rawData, datenow.getTime());  
+            functionDraw(data, points);        
+          }
+        });
+
         const data  = refreshData(rawData, datenow.getTime());    
 
         functionDraw(data, points);
@@ -247,7 +325,7 @@ map.on("moveend", render);
 let dataSmooth;
 
 function functionDraw(data, points) {
-  //console.log("data:",data);  
+  console.log("data:",data);  
   
   const smooth = ({type, value, coordinates}) => {
     //console.log(coordinates);
@@ -303,7 +381,7 @@ function render() {
   context.textBaseline = 'middle';
   context.textAlign = 'center';
   const zoomLevel = map.getZoom();
-  console.log(zoomLevel);
+  //console.log(zoomLevel);
   for (let i=0 ; i<points.length ; i++) {
     const p = map.project(new mapboxgl.LngLat(points[i][0], points[i][1]));
     const fontsize = (parseInt(points[i][2]/15)+10) * Math.min((Math.pow(zoomLevel,3)/(1000)),1);
@@ -332,17 +410,13 @@ function render() {
 }
 
 
-const $rangeDate = $("#dateSlider");
-$rangeDate.ionRangeSlider();
-const sliderInstance = $rangeDate.data("ionRangeSlider");
-
-
 function dateToTS (date) {
     return date.valueOf();
 }
 
 function tsToDate (ts) {
-    const d = new Date(ts);
+    console.log(dayList[ts]);
+    const d = new Date(dayList[ts]);
 
     return d.toLocaleDateString("ko-KR", {
         year: 'numeric',
@@ -351,23 +425,6 @@ function tsToDate (ts) {
     });
 }   
 
-sliderInstance.update({
-  skin: "big",
-  min: dateToTS(new Date('2022-07-31')),
-  max: dateToTS(new Date('2022-08-11')),
-  from: dateToTS(new Date('2022-08-08')),  
-  prettify : tsToDate,
-  step : 86400000,
-
-  onChange:  (sliderData) => { 
-    
-    //console.log(sliderData.from);
-    datenow.setTime(sliderData.from);
-    //console.log(datenow);
-    const data  = refreshData(rawData, sliderData.from)  
-    functionDraw(data, points);        
-  }
-});
 
 
 
