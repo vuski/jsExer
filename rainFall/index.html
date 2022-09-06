@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <title>2022.08.08 rainFall</title>
+  <title>일 강수량</title>
   <Style>
       * {
   margin: 0;
@@ -94,10 +94,10 @@
 
 <script >
 
-const numberArray = range(20,400,2); 
+const numberArray = range(20,700,2); 
 //const basePoint = {x:953200, y:1947700};
 //const [xcen,ycen] = proj4('EPSG:5179','EPSG:4326',[ basePoint.x, basePoint.y]);
-const datenow = new Date('2022-08-08');
+const datenow = new Date('2022-09-05');
 mapboxgl.accessToken = 'pk.eyJ1Ijoic2JraW00MjciLCJhIjoiY2o4b3Q0aXd1MDdyMjMzbnRxYTdvdDZrbCJ9.GCHi6-mDGEkd3F-knzSfRQ';
 const map = new mapboxgl.Map({
     container: 'map', // container ID
@@ -164,7 +164,9 @@ faulty.add(965);
 faulty.add(575);
 faulty.add(321);
 faulty.add(116);
-
+faulty.add(329);
+faulty.add(419);
+faulty.add(175);
 
 const dateFilter = new Set();
 dateFilter.add("1998-08-01");
@@ -205,7 +207,7 @@ dateFilter.add("2022-08-08");
 dateFilter.add("2022-08-09");
 dateFilter.add("2022-08-10");
 dateFilter.add("2022-08-11");
-
+dateFilter.add("2022-09-05");
 const daySet = new Set();
 const dayList = new Array();
 
@@ -248,7 +250,7 @@ async function loadJson() {
         rawData.forEach((d)=>{
           daySet.add(d.date);
         });
-        console.log(daySet);
+        //console.log(daySet);
         daySet.forEach((d) =>{
           dayList.push(d);
         });
@@ -257,15 +259,15 @@ async function loadJson() {
           skin: "big",
           min: 0,
           max: dayList.length-1,
-          from: dayList.length-4,  
+          from: dayList.length-1,  
           prettify : tsToDate,
           step : 1,
 
           onChange:  (sliderData) => { 
             
-            console.log("new Date(dayList[sliderData.from])",new Date(dayList[sliderData.from]));
+            //console.log("new Date(dayList[sliderData.from])",new Date(dayList[sliderData.from]));
             datenow.setTime(new Date(dayList[sliderData.from]));
-            console.log("datenow:",datenow);
+           // console.log("datenow:",datenow);
             const data  = refreshData(rawData, datenow.getTime());  
             functionDraw(data, points);        
           }
@@ -325,7 +327,7 @@ map.on("moveend", render);
 let dataSmooth;
 
 function functionDraw(data, points) {
-  console.log("data:",data);  
+  //console.log("data:",data);  
   
   const smooth = ({type, value, coordinates}) => {
     //console.log(coordinates);
@@ -388,7 +390,8 @@ function render() {
     context.font = 'bold '+ fontsize+'px Arial';
     context.fillStyle = mapColor(Math.round(points[i][2]));
     context.fillText(Math.round(points[i][2]), p.x, p.y);
-    
+    context.fillStyle = "black";
+    //context.fillText(Math.round(points[i][2])+","+points[i][3], p.x, p.y);
   }
 
   context.textBaseline = 'middle';
@@ -415,7 +418,7 @@ function dateToTS (date) {
 }
 
 function tsToDate (ts) {
-    console.log(dayList[ts]);
+    //console.log(dayList[ts]);
     const d = new Date(dayList[ts]);
 
     return d.toLocaleDateString("ko-KR", {
