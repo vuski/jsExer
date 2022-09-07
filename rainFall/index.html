@@ -97,7 +97,7 @@
 const numberArray = range(20,700,2); 
 //const basePoint = {x:953200, y:1947700};
 //const [xcen,ycen] = proj4('EPSG:5179','EPSG:4326',[ basePoint.x, basePoint.y]);
-const datenow = new Date('2022-09-05');
+const datenow = new Date('2022-09-07');
 mapboxgl.accessToken = 'pk.eyJ1Ijoic2JraW00MjciLCJhIjoiY2o4b3Q0aXd1MDdyMjMzbnRxYTdvdDZrbCJ9.GCHi6-mDGEkd3F-knzSfRQ';
 const map = new mapboxgl.Map({
     container: 'map', // container ID
@@ -167,6 +167,7 @@ faulty.add(116);
 faulty.add(329);
 faulty.add(419);
 faulty.add(175);
+faulty.add(918);
 
 const dateFilter = new Set();
 dateFilter.add("1998-08-01");
@@ -208,6 +209,8 @@ dateFilter.add("2022-08-09");
 dateFilter.add("2022-08-10");
 dateFilter.add("2022-08-11");
 dateFilter.add("2022-09-05");
+dateFilter.add("2022-09-06");
+dateFilter.add("2022-09-07");
 const daySet = new Set();
 const dayList = new Array();
 
@@ -390,7 +393,7 @@ function render() {
     context.font = 'bold '+ fontsize+'px Arial';
     context.fillStyle = mapColor(Math.round(points[i][2]));
     context.fillText(Math.round(points[i][2]), p.x, p.y);
-    context.fillStyle = "black";
+    //context.fillStyle = "black";
     //context.fillText(Math.round(points[i][2])+","+points[i][3], p.x, p.y);
   }
 
@@ -398,7 +401,8 @@ function render() {
   context.textAlign = 'center';
   context.font = 'bold 35px Arial';
   context.fillStyle = 'black';
-  context.fillText(datenow.toLocaleDateString()+" 일강수량", canvas1.width/2, 40);
+  if (datenow.getTime()==new Date('2022-09-07').getTime()) context.fillText("2022.9.5 ~ 9.6 양일간 누적강수량", canvas1.width/2, 40);
+  else context.fillText(datenow.toLocaleDateString()+" 일강수량", canvas1.width/2, 40);
   context.font = 'bold 17px Arial';
   context.fillText("수치가 표기된 곳이 기상 관측지점", canvas1.width/2, 70);
 
@@ -420,12 +424,16 @@ function dateToTS (date) {
 function tsToDate (ts) {
     //console.log(dayList[ts]);
     const d = new Date(dayList[ts]);
-
-    return d.toLocaleDateString("ko-KR", {
+    if (d.getTime()==new Date("2022-09-07").getTime()) {
+      return "2022년 9월 5일 ~ 9월 6일 합계"
+    }
+    else {
+       return d.toLocaleDateString("ko-KR", {
         year: 'numeric',
         month: 'long',
         day: 'numeric'
-    });
+      });
+    }
 }   
 
 
