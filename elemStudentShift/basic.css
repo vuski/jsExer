@@ -28,11 +28,19 @@ body {
 #bottomBar {
     position: absolute;
     width: 100%;
-    height: 90px;
     bottom: 0px;
-    /* left : 45%; */
     background-color: rgba(0,0,0,0.8);
     z-index: 20;
+}
+@media (max-width: 800px) {
+    #bottomBar {
+        height: 140px;
+    }
+}
+@media (min-width: 801px) {
+    #bottomBar {
+        height: 90px;
+    }
 }
 
 #popupText {
@@ -73,7 +81,9 @@ body {
     z-index: 40;
 }
 
-.mapboxgl-map .mapboxgl-style .mapboxgl-annotation,
-.mapboxgl-map .mapboxgl-style .mapboxgl-label {
-  visibility: hidden !important;
+#textCanvas {
+    position: absolute;
+    bottom: 0px;
+    z-index : 30;
+    pointer-events: none;
 }
