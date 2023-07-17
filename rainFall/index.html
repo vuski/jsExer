@@ -97,7 +97,7 @@
 const numberArray = range(20,700,2); 
 //const basePoint = {x:953200, y:1947700};
 //const [xcen,ycen] = proj4('EPSG:5179','EPSG:4326',[ basePoint.x, basePoint.y]);
-const datenow = new Date('2022-09-07');
+const datenow = new Date('2023-07-16');
 mapboxgl.accessToken = 'pk.eyJ1Ijoic2JraW00MjciLCJhIjoiY2o4b3Q0aXd1MDdyMjMzbnRxYTdvdDZrbCJ9.GCHi6-mDGEkd3F-knzSfRQ';
 const map = new mapboxgl.Map({
     container: 'map', // container ID
@@ -169,6 +169,14 @@ faulty.add(419);
 faulty.add(175);
 faulty.add(918);
 
+//관측점 정보 없음 -- #메타자료 - 지점정보
+faulty.add(347);
+faulty.add(348);
+faulty.add(349);
+faulty.add(972);
+faulty.add(977);
+faulty.add(994);
+
 const dateFilter = new Set();
 dateFilter.add("1998-08-01");
 dateFilter.add("1998-08-02");
@@ -211,6 +219,12 @@ dateFilter.add("2022-08-11");
 dateFilter.add("2022-09-05");
 dateFilter.add("2022-09-06");
 dateFilter.add("2022-09-07");
+
+
+dateFilter.add("2023-07-14");
+dateFilter.add("2023-07-15");
+dateFilter.add("2023-07-16");
+
 const daySet = new Set();
 const dayList = new Array();
 
